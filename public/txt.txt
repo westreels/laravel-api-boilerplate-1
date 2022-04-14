@@ -1,0 +1,68 @@
+# Ploi Webserver Configuration, do not remove!
+include /etc/nginx/ploi/api.middleware.slotlayer.com/before/*;
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    root /home/ploi/api.middleware.slotlayer.com/public;
+    server_name api.middleware.slotlayer.com;
+
+    access_log /var/log/nginx/api.middleware.slotlayer.com-access.log combined;
+    error_log  /var/log/nginx/api.middleware.slotlayer.com-error.log error;
+
+    include /etc/nginx/ssl/api.middleware.slotlayer.com;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:ECDHE-ECDSA-DES-CBC3-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA:!DSS';
+    ssl_prefer_server_ciphers on;
+    ssl_dhparam /etc/nginx/dhparams.pem;
+
+    index index.php;
+
+    charset utf-8;
+
+    # Ploi Configuration, do not remove!
+    include /etc/nginx/ploi/api.middleware.slotlayer.com/server/*;
+
+    # Try static files first, rewrite everything else to index.php
+    location / {
+        # Remove any leading index.php/index.html/index.htm from the request url
+        rewrite ^(.*/)index\.(php|html|htm)$ $scheme://$host$1 permanent;
+
+        error_page 404 /index.php;
+
+        try_files $uri /index.php?$query_string;
+    }
+
+    # Prevent logs filling up with these requests
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    location = /index.php {
+        fastcgi_split_path_info ^(.+\.php)(.*)$;
+        fastcgi_buffers 256 16k;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME     $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php8.0-fpm.sock;
+    }
+
+    # Hard cache any static assets in /build, /files, /fonts, /img, /vendor
+    # These paths will also never hit your app and will hard 404 when a file does not exist
+    location ~* ^\/(build|files|fonts|img|vendor)/.*\.(?:css(\.map)?|js(\.map)?|jpe?g|png|gif|ico|cur|heic|webp|tiff?|mp3|m4a|aac|ogg|midi?|wav|mp4|mov|webm|mpe?g|avi|ogv|flv|wmv|svgz?|ttf|ttc|otf|eot|woff|woff2|html)$ {
+        expires max;
+
+        add_header access-control-allow-origin "*" always;
+
+        try_files $uri =404;
+    }
+
+    # Disallow any path starting with a . except the .well-known directory
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+
+# Ploi Webserver Configuration, do not remove!
+include /etc/nginx/ploi/api.middleware.slotlayer.com/after/*;
