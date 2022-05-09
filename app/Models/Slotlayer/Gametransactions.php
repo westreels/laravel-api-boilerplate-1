@@ -15,7 +15,7 @@ class Gametransactions extends \App\Models\BaseModel
     protected $table = 'gametransactions';
 
     protected $fillable = [
-        'id', 'casinoid', 'player', 'ownedBy', 'bet', 'win', 'usd_exchange', 'currency', 'gameid', 'txid', 'final', 'type', 'callback_state', 'rawdata', 'roundid',
+        'id', 'casinoid', 'player', 'ownedBy', 'bet', 'win', 'usd_exchange', 'currency', 'gameid', 'txid', 'final', 'type', 'access_profile' 'callback_state', 'rawdata', 'roundid',
     ];
 
     protected $casts = [

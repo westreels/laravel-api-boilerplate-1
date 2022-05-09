@@ -158,10 +158,10 @@ class CallbackController extends \App\Http\Controllers\Controller
             $totalBet = intval($request['bet']);
             $totalWin = intval($request['win']);
 
-            $OperatorTransactions = GametransactionsLive::create(['casinoid' => $findoperator->id, 'currency' => $findoperator->native_currency, 'player' => $playerId, 'ownedBy' => $findoperator->ownedBy, 'bet' => $withdraw, 'win' => $deposit, 'gameid' => $gameId, 'txid' => $transactionRef, 'roundid' => $roundId, 'usd_exchange' => $exchange, 'callback_state' => '1', 'type' => 'external_game', 'rawdata' => '[]']);
+            $OperatorTransactions = GametransactionsLive::create(['casinoid' => $findoperator->id, 'currency' => $findoperator->native_currency, 'player' => $playerId, 'ownedBy' => $findoperator->ownedBy, 'bet' => $withdraw, 'win' => $deposit, 'access_profile' => $findoperatorParent->access_profile, 'gameid' => $gameId, 'txid' => $transactionRef, 'roundid' => $roundId, 'usd_exchange' => $exchange, 'callback_state' => '1', 'type' => 'external_game', 'rawdata' => '[]']);
             $baseurl = $findoperatorParent->callbackurl;
             $prefix = $findoperatorParent->slots_prefix;
-            $verifySign = md5($findoperatorParent->apikey_parent.'_'.$roundId.'_'.$findoperatorParent->operator_secret);
+            $verifySign = sha1($findoperatorParent->apikey_parent.'^'.$findoperatorParent->operator_secret.'^'.$roundId);
 
             if($final === "1") {
                     //$totalTxs = GametransactionsLive::where('roundid', '=', $roundId)->where('player', '=', $playerId)->get();

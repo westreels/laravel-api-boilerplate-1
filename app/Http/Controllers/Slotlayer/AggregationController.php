@@ -81,8 +81,8 @@ class AggregationController extends \App\Http\Controllers\Controller
     public function startDemo(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'apikey' => ['required', 'min:20', 'max:255'],
-            'apikey_owner' => ['required', 'min:20', 'max:255'],
+            'apikey' => ['required', 'min:12', 'max:155'],
+            'apikey_owner' => ['required', 'min:2', 'max:20'],
             'game' => ['required', 'min:3', 'max:100'],
             'currency' => ['required', 'min:2', 'max:7'],
         ]);
@@ -211,6 +211,7 @@ class AggregationController extends \App\Http\Controllers\Controller
                 'casino_id' => $selectApiSettings->id,
                 'game' => $request->game,
                 'session_id' => $tokenEncrypt,
+                'ownedBy' => $selectApiSettings->ownedBy,
                 'player_id' => $generateDemoPlayerID,
                 'player_meta' => '[]',
                 'player_ip' => 0,
@@ -226,7 +227,8 @@ class AggregationController extends \App\Http\Controllers\Controller
             if($accessProfileSettings === 0) {
                 $launchurl = $decodeResult['url'];
             } else {
-                $launchurl = 'https://launch.betboi.io?key='.$tokenEncrypt.'&mode=regular';
+                $launchurl = $decodeResult['url'];
+                $launchurl = 'https://launcher.betboi.io?key='.$tokenEncrypt.'&mode=demo';
             } 
 
             return response()->json([
@@ -255,9 +257,9 @@ class AggregationController extends \App\Http\Controllers\Controller
     {
         $validator = Validator::make($request->all(), [
             'apikey' => ['required', 'min:20', 'max:255'],
-            'apikey_owner' => ['required', 'min:20', 'max:255'],
+            'apikey_owner' => ['required', 'min:2', 'max:20'],
             'game' => ['required', 'min:3', 'max:100'],
-            'playerid' => ['required', 'min:3', 'max:100', 'regex:/^[^(\|\]`!%^&*=};:?><’)]*$/'],
+            'playerid' => ['required', 'min:3', 'max:100', 'regex:/^[^(\|\]`!%^&=};:?><’)]*$/'],
             'extra_currency' => ['min:2', 'max:7'],
             'currency' => ['required', 'min:2', 'max:7'],
         ]);
@@ -402,6 +404,7 @@ class AggregationController extends \App\Http\Controllers\Controller
                 'session_id' => $tokenEncrypt,
                 'player_id' => $playerID,
                 'currency' => $currency,
+                'ownedBy' => $selectApiSettings->ownedBy,
                 'extra_currency' => $extra_currency,
                 'player_meta' => '[]',
                 'player_ip' => 0,
@@ -415,11 +418,12 @@ class AggregationController extends \App\Http\Controllers\Controller
             if($accessProfileSettings === 0) {
                 $launchurl = $decodeResult['url'];
             } else {
-                $launchurl = 'https://launch.betboi.io?key='.$tokenEncrypt.'&mode=regular';
+                $launchurl = 'https://launcher.betboi.io?key='.$tokenEncrypt.'&mode=regular';
             } 
 
             return response()->json([
                 'status' => 200,
+                'orig' => $decodeResult['url'],
                 'url' => $launchurl,
                 'request_ip' => $ip
             ])->setStatusCode(200);
